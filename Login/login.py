@@ -33,7 +33,7 @@ def login():
                 st.rerun()
                 return
             else:
-                st.error("Usuario o contraseña incorrectos")
+                st.error("El usuario o contraseña no existe, intente de nuevo")
 
 
 if __name__ == "__main__":
