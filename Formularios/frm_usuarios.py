@@ -10,22 +10,22 @@ def generar_contrasena(nombres, apellidos, cedula):
     return parte_nombre + parte_apellido + parte_cedula
 
 # Formulario de nuevo usuario
-def formulario_nuevo_usuario():
+def formulario_nuevo_usuario(usuario_data=None):
     st.subheader("Registro de Usuarios")
 
-    # Campos del formulario
-    nombres = st.text_input("Nombres")
-    apellidos = st.text_input("Apellidos")
-    cedula = st.text_input("Cédula")
-    telefono = st.text_input("Teléfono")
-    correo = st.text_input("Correo electrónico")
-    mascota = st.text_input("Mascota")
-    direccion = st.text_input("Dirección")
-    rol = st.selectbox("Rol", ["paciente", "secretaria", "doctor", "veterinario"])
+    # Extraer valores si estamos en modo edición
+    nombres = st.text_input("Nombres", value=usuario_data.get('nombres') if usuario_data else "")
+    apellidos = st.text_input("Apellidos", value=usuario_data.get('apellidos') if usuario_data else "")
+    cedula = st.text_input("Cédula", value=usuario_data.get('cedula') if usuario_data else "")
+    telefono = st.text_input("Teléfono", value=usuario_data.get('telefono') if usuario_data else "")
+    correo = st.text_input("Correo electrónico", value=usuario_data.get('correo_electronico') if usuario_data else "")
+    mascota = st.text_input("Mascota", value=usuario_data.get('mascota') if usuario_data else "")
+    direccion = st.text_input("Dirección", value=usuario_data.get('direccion') if usuario_data else "")
+    rol = st.selectbox("Rol", ["paciente", "secretaria", "doctor", "veterinario"],
+                       index=["paciente", "secretaria", "doctor", "veterinario"].index(usuario_data.get('rol')) if usuario_data else 0)
 
-    # Botón para guardar el usuario
+    # Aquí puedes adaptar para guardar o actualizar según si hay usuario_data
     if st.button("Guardar Usuario", key="guardar_usuario_btn"):
-        # Validación mínima de campos
         if not nombres or not apellidos or not cedula or not correo:
             st.warning("Por favor complete todos los campos obligatorios.")
             return
@@ -34,48 +34,47 @@ def formulario_nuevo_usuario():
             conn = get_connection()
             cursor = conn.cursor()
 
-            # 1️⃣ Validar si la cédula ya existe
-            query_check = "SELECT id FROM usuarios_detalle WHERE cedula = %s"
-            cursor.execute(query_check, (cedula,))
-            result = cursor.fetchone()
-
-            if result:
-                st.warning("Ya existe un usuario registrado con esta cédula.")
-            else:
-                # 2️⃣ Insertar en usuarios (login)
-                contrasena = generar_contrasena(nombres, apellidos, cedula)
-                nombre_usuario = correo  # usamos el correo como username
-
-                query_usuarios = """
-                    INSERT INTO usuarios (nombre_usuario, contrasena, rol)
-                    VALUES (%s, %s, %s)
+            if usuario_data:  # Modo editar
+                query_update_detalle = """
+                    UPDATE usuarios_detalle SET nombres=%s, apellidos=%s, cedula=%s, telefono=%s, correo_electronico=%s, mascota=%s, direccion=%s 
+                    WHERE id=%s
                 """
-                values_usuarios = (nombre_usuario, contrasena, rol)
-                cursor.execute(query_usuarios, values_usuarios)
-                conn.commit()
+                values_detalle = (nombres, apellidos, cedula, telefono, correo, mascota, direccion, usuario_data['detalle_id'])
+                cursor.execute(query_update_detalle, values_detalle)
 
-                usuario_id = cursor.lastrowid  # obtener el id generado
+                query_update_usuarios = "UPDATE usuarios SET rol=%s WHERE id=%s"
+                cursor.execute(query_update_usuarios, (rol, usuario_data['usuario_id']))
 
-                # 3️⃣ Insertar en usuarios_detalle
+                st.success("✅ Usuario actualizado exitosamente.")
+
+            else:  # Modo nuevo
+                from Formularios.frm_usuarios import generar_contrasena
+                contrasena = generar_contrasena(nombres, apellidos, cedula)
+
+                query_usuarios = "INSERT INTO usuarios (nombre_usuario, contrasena, rol) VALUES (%s, %s, %s)"
+                cursor.execute(query_usuarios, (correo, contrasena, rol))
+                usuario_id = cursor.lastrowid
+
                 query_detalle = """
                     INSERT INTO usuarios_detalle (nombres, apellidos, cedula, telefono, correo_electronico, mascota, direccion, usuario_id)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """
-                values_detalle = (nombres, apellidos, cedula, telefono, correo, mascota, direccion, usuario_id)
-                cursor.execute(query_detalle, values_detalle)
-                conn.commit()
+                cursor.execute(query_detalle, (nombres, apellidos, cedula, telefono, correo, mascota, direccion, usuario_id))
 
-                st.success(f"✅ Usuario registrado exitosamente.\n\n**Usuario:** {nombre_usuario}\n**Contraseña:** {contrasena}")
+                st.success(f"✅ Usuario creado. Usuario: {correo} | Contraseña: {contrasena}")
 
-                # Cambiar el estado para volver al listado
-                st.session_state['mostrar_formulario_usuario'] = False
-
+            conn.commit()
             cursor.close()
             conn.close()
 
-        except mysql.connector.Error as e:
-            st.error(f"Error al registrar usuario: {e}")
+            st.session_state['mostrar_formulario_usuario'] = False
+            st.session_state['usuario_editar'] = None
+            st.rerun()
 
-    # Botón para volver al listado
+        except Exception as e:
+            st.error(f"❌ Error: {e}")
+
     if st.button("Volver al listado", key="volver_listado_btn"):
         st.session_state['mostrar_formulario_usuario'] = False
+        st.session_state['usuario_editar'] = None
+        st.rerun()

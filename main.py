@@ -1,6 +1,6 @@
 import streamlit as st
 from Login.login import login
-from Pages import V_Veterianario, V_Doctor, V_Secretaria, V_Paciente, V_Admin, Citas, Historial_Medico, Notas, Paciente, Prediccion_IA, Tratamientos, Usuarios
+from Pages import V_Veterianario, V_Doctor, V_Secretaria, V_Paciente, V_Admin, Citas, Historial_Medico, Notas, Paciente, Prediccion_IA, Tratamientos, Usuarios, crud_usuarios
 from streamlit_option_menu import option_menu
 
 
@@ -24,7 +24,7 @@ else:
     st.sidebar.write(f"Usuario: {st.session_state['usuario']}")
     # st.sidebar.write(f"Rol: {st.session_state['rol']}")
 
-    
+
     PAGINAS_POR_ROL = {
         'admin': ['main', 'Citas', 'Historial Medico', 'Notas', 'Paciente', 'Prediccion IA', 'Tratamientos', 'Usuarios', 'V Admin'],
         'veterinario': ['main', 'Citas', 'Historial Medico', 'Notas', 'Paciente', 'Prediccion IA', 'Tratamientos', 'Usuarios'],
