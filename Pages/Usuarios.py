@@ -62,11 +62,17 @@ def main():
                 ud.cedula,
                 ud.telefono,
                 ud.correo_electronico,
-                ud.mascota,
                 ud.direccion,
                 ud.usuario_id,
                 u.rol,
-                u.nombre_usuario
+                u.nombre_usuario,
+                (
+                    SELECT m.nombre 
+                    FROM mascotas m 
+                    WHERE m.id_dueño = u.id 
+                    ORDER BY m.id ASC 
+                    LIMIT 1
+                ) AS mascota
             FROM usuarios_detalle ud
             JOIN usuarios u ON ud.usuario_id = u.id
         """
