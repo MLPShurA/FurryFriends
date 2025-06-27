@@ -1,24 +1,36 @@
 import streamlit as st
 from db import get_connection
+from Login.security import verify_password
 
-def verificar_usuario(usuario, contrasena):
+def verificar_usuario(usuario, contraseña):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
-    query = "SELECT * FROM usuarios WHERE nombre_usuario = %s AND contrasena = %s"
-    cursor.execute(query, (usuario, contrasena))
+
+    query = "SELECT * FROM usuarios WHERE nombre_usuario = %s"
+    cursor.execute(query, (usuario,))
     resultado = cursor.fetchone()
+
     cursor.close()
     conn.close()
-    return resultado
+
+    if resultado:
+        # Si existe hash, usarlo
+        if resultado['contrasena_hash']:
+            if verify_password(contraseña, resultado['contrasena_hash']):
+                return resultado
+        else:
+            # Comparar contra la contraseña plana (solo si no hay hash)
+            if contraseña == resultado['contrasena']:
+                return resultado
+
+    return None
 
 def login():
     st.title("Inicio de Sesión")
 
-    # Inicializa el estado de login si no existe
     if 'logueado' not in st.session_state:
         st.session_state['logueado'] = False
 
-    # Mostrar formulario solo si no está logueado
     if not st.session_state['logueado']:
         usuario = st.text_input("Usuario")
         contrasena = st.text_input("Contraseña", type="password")
@@ -30,11 +42,9 @@ def login():
                 st.session_state['usuario'] = user_data['nombre_usuario']
                 st.session_state['rol'] = user_data['rol']
                 st.session_state['logueado'] = True
+                st.success("✅ Inicio de sesión correcto")
                 st.rerun()
-                return
             else:
-                st.error("El usuario o contraseña no existe, intente de nuevo")
-
-
-if __name__ == "__main__":
-    login()
+                st.error("❌ Usuario o contraseña incorrectos")
+    else:
+        st.success(f"Bienvenido, {st.session_state['usuario']}")

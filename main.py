@@ -29,7 +29,7 @@ else:
         'admin': ['main', 'Citas', 'Historial Medico', 'Notas', 'Paciente', 'Prediccion IA', 'Tratamientos', 'Usuarios', 'V Admin'],
         'veterinario': ['main', 'Citas', 'Historial Medico', 'Notas', 'Paciente', 'Prediccion IA', 'Tratamientos', 'Usuarios'],
         'doctor': ['main', 'Citas', 'Historial Medico', 'Notas', 'Paciente', 'Prediccion IA', 'Tratamientos', 'Usuarios', 'V Doctor'],
-        'paciente': ['main', 'Paciente', 'Citas', 'Tratamientos', 'V Paciente'],
+        'paciente': ['main', 'Paciente', 'Citas', 'Tratamientos', 'V Paciente', 'Notas'],
         'secretaria': ['main', 'Usuarios', 'Paciente', 'Citas', 'V Secretaria']
     }
 
