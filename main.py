@@ -1,162 +1,146 @@
 import streamlit as st
-from Login.login import login
-from Pages import V_Veterianario, V_Doctor, V_Secretaria, V_Paciente, V_Admin, Citas, Historial_Medico, Notas, Paciente, Prediccion_IA, Tratamientos, Usuarios
-from streamlit_option_menu import option_menu
 import base64
+from Login.login import login
+from Pages import (
+    V_Veterianario, V_Doctor, V_Secretaria, V_Paciente,
+    V_Admin, Citas, Historial_Medico, Notas, Paciente,
+    Prediccion_IA, Tratamientos, Usuarios
+)
+from streamlit_option_menu import option_menu
 
 def image_to_base64(path):
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
-image_path = "Recursos/Kuromi.jpg"
-image_base64 = image_to_base64(image_path)
+st.set_page_config(
+    page_title="Medical Pets",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-# --- CONFIGURACIÓN GENERAL ---
-st.set_page_config(page_title="Medical Pets", layout="wide")
-
-# --- ESTILO PERSONALIZADO ---
+# --- CSS para ocultar la barra automática y dejar solo tu menú ---
 st.markdown("""
     <style>
-    body, .main, .block-container {
-        background-color: #C9F7F7;
-        color: #000000;
+    /* Oculta el selector de páginas streamlit-multipage */
+    section[data-testid="stSidebarNav"] { display: none !important; }
+    /* Oculta el bloque completo del primer menú lateral */
+    div[class^="st-emotion-cache-79elbk"] { display: none !important; }
+    /* Oculta barrita superior Streamlit */
+    header, #MainMenu, footer { visibility: hidden; height: 0; padding: 0; }
+    body, .main, .block-container { background-color: #C9F7F7 !important; color: #000; }
+    [data-testid="stSidebar"] > div:first-child {
+        background-color: #34CACA !important;
+        padding-top: 0px !important;
     }
-
-    [data-testid="stSidebar"] {
-        background-color: #34CACA;
-        color: white;
-    }
-
-    [data-testid="stSidebar"] span, [data-testid="stSidebar"] label {
-        color: white !important;
+    /* -------------------- BOTONES TURQUESA GLOBALES ------------------- */
+    .stButton>button, .icon-button, .edit-btn, .delete-btn {
+        background-color: #34CACA !important;
+        color: #fff !important;
         font-weight: bold;
+        border: none !important;
+        border-radius: 10px !important;
+        transition: background-color 0.3s;
+        box-shadow: none !important;
     }
-
-    .stButton>button {
-        background-color: #00C2C2;
-        color: black;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 8px;
-        font-weight: bold;
-        transition: background-color 0.3s ease;
-    }
-
-    .stButton>button:hover {
-        background-color: #008C8C;
-        color: white;
-    }
-
-    .stSelectbox, .stTextInput>div>input {
-        border-radius: 8px !important;
-    }
-
-    h1, h2, h3, h4 {
-        color: #1B1B1B;
-    }
-
-    [data-testid="stSidebarNav"] { display: none; }
-
-    div[data-testid="stButton"] > button.logout-btn {
-        position: absolute;
-        top: 10px;
-        right: 25px;
-        background-color: #00C2C2;
-        color: black;
-        border: none;
-        padding: 8px 16px;
-        font-weight: bold;
-        border-radius: 6px;
-        z-index: 100;
-    }
-
-    div[data-testid="stButton"] > button.logout-btn:hover {
-        background-color: #00a3a3;
-    }
-
-    .css-18e3th9 {
-        padding-top: 2rem;
+    .stButton>button:hover, .icon-button:hover, .edit-btn:hover, .delete-btn:hover {
+        background-color: #00C2C2 !important;
+        color: #fff !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# --- VERIFICACIÓN DE SESIÓN ---
 if 'usuario' not in st.session_state:
     st.markdown("""
-        <style>
-        [data-testid="stSidebar"] { display: none; }
-        </style>
+    <style>
+    [data-testid="stSidebar"] {display: none;}
+    </style>
     """, unsafe_allow_html=True)
     login()
+    st.stop()
 
-else:
-    # --- Botón de logout funcional en la misma página ---
-    col1, col2 = st.columns([0.9, 0.1])
-    with col2:
-        logout_btn = st.button("Cerrar sesión", key="logout_btn", help="Cerrar sesión", type="primary")
-        st.markdown("""<style>button.logout-btn {}</style>""", unsafe_allow_html=True)
-
-    if logout_btn:
-        for key in list(st.session_state.keys()):
-            del st.session_state[key]
+col1, col2 = st.columns([0.9, 0.1])
+with col2:
+    if st.button("Cerrar sesión", key="logout_btn", type="primary"):
+        for k in list(st.session_state.keys()):
+            del st.session_state[k]
         st.success("Sesión cerrada correctamente")
         st.rerun()
 
-    # --- MENÚ LATERAL CON OPCIONES POR ROL ---
-    st.sidebar.write(f"Usuario: {st.session_state['usuario']}")
-
+with st.sidebar:
+    st.markdown(
+        f"<div style='text-align:center; font-weight:bold; color:white; padding:20px 0;'>"
+        f"Usuario: {st.session_state['usuario'].capitalize()}"
+        "</div>",
+        unsafe_allow_html=True
+    )
     PAGINAS_POR_ROL = {
-        'admin': ['main', 'Citas', 'Historial Medico', 'Notas', 'Paciente', 'Prediccion IA', 'Tratamientos', 'Usuarios', 'V Admin'],
-        'veterinario': ['main', 'Citas', 'Historial Medico', 'Notas', 'Paciente', 'Prediccion IA', 'Tratamientos', 'Usuarios'],
-        'doctor': ['main', 'Citas', 'Historial Medico', 'Notas', 'Paciente', 'Prediccion IA', 'Tratamientos', 'Usuarios', 'V Doctor'],
-        'paciente': ['main', 'Paciente', 'Citas', 'Tratamientos', 'V Paciente', 'Notas'],
-        'secretaria': ['main', 'Usuarios', 'Paciente', 'Citas', 'V Secretaria']
+        'admin':       ['Inicio','Citas','Historial Medico','Notas','Paciente','Prediccion IA','Tratamientos','Usuarios','V Admin'],
+        'veterinario': ['Inicio','Citas','Historial Medico','Notas','Paciente','Prediccion IA','Tratamientos','Usuarios','V Veterinario'],
+        'doctor':      ['Inicio','Citas','Historial Medico','Notas','Paciente','Prediccion IA','Tratamientos','Usuarios','V Doctor'],
+        'paciente':    ['Inicio','Paciente','Citas','Tratamientos','V Paciente','Notas'],
+        'secretaria':  ['Inicio','Usuarios','Paciente','Citas','V Secretaria']
     }
-
     rol_actual = st.session_state['rol']
     paginas_visibles = PAGINAS_POR_ROL.get(rol_actual, [])
 
-    with st.sidebar:
-        seleccion = option_menu(
-            menu_title=None,
-            options=paginas_visibles,
-            menu_icon="cast",
-            default_index=0
-        )
+    seleccion = option_menu(
+        menu_title=None,
+        options=paginas_visibles,
+        icons=[
+            "house", "calendar-check", "journal-medical", "file-text",
+            "person", "activity", "clipboard-check", "people",
+            "shield-person"
+        ][:len(paginas_visibles)],
+        menu_icon="cast",
+        default_index=0,
+        orientation="vertical",
+        styles={
+            "container": {"padding": "0", "background-color": "#34CACA"},
+            "icon": {"color": "white", "font-size": "20px"},
+            "nav-link": {
+                "font-size": "16px", "text-align": "left",
+                "margin": "0px", "color": "white",
+                "--hover-color": "#00A3A3"
+            },
+            "nav-link-selected": {"background-color": "#00C2C2", "color": "white"},
+        }
+    )
 
-    st.write(f"Página seleccionada: {seleccion}")
+image_path = "Recursos/Kuromi.jpg"
+image_b64 = image_to_base64(image_path)
 
-    # --- CONTENIDO PRINCIPAL (encabezado bonito) ---
-    if seleccion == 'main':
-        st.markdown(f"""
-            <div style="text-align:center; margin-top: 50px;">
-                <h1 style="color:#004D4D;">¡Bienvenido/a <span style='color:#00C2C2;'>{st.session_state['usuario'].capitalize()}</span>!</h1>
-                <img src="data:image/jpeg;base64,{image_base64}" width="120"/>
-                <h2 style="color:#004D4D;">Medical <span style='color:#00C2C2;'>Pets</span></h2>
-            </div>
-        """, unsafe_allow_html=True)
+if seleccion == 'Inicio':
+    st.markdown(f"""
+        <div style="text-align:center; margin-top:50px;">
+            <h1 style="color:#004D4D;">
+                ¡Bienvenido/a <span style='color:#00C2C2;'>{st.session_state['usuario'].capitalize()}</span>!
+            </h1>
+            <img src="data:image/png;base64,{image_b64}" width="120" style="border-radius:12px;"/>
+            <h2 style="color:#004D4D;">Medical <span style='color:#00C2C2;'>Pets</span></h2>
+        </div>
+    """, unsafe_allow_html=True)
 
-    elif seleccion == 'V Admin' and rol_actual == 'admin':
-        V_Admin.main()
-    elif seleccion == 'V Doctor' and rol_actual == 'doctor':
-        V_Doctor.main()
-    elif seleccion == 'V Paciente' and rol_actual == 'paciente':
-        V_Paciente.main()
-    elif seleccion == 'V Secretaria' and rol_actual == 'secretaria':
-        V_Secretaria.main()
-    elif seleccion == 'V Veterinario' and rol_actual == 'veterinario':
-        V_Veterianario.main()
-    elif seleccion == 'Citas':
-        Citas.main()
-    elif seleccion == 'Historial Medico':
-        Historial_Medico.main()
-    elif seleccion == 'Notas':
-        Notas.main()
-    elif seleccion == 'Paciente':
-        Paciente.main()
-    elif seleccion == 'Prediccion IA':
-        Prediccion_IA.main()
-    elif seleccion == 'Tratamientos':
-        Tratamientos.main()
-    elif seleccion == 'Usuarios':
-        Usuarios.main()
+elif seleccion == 'V Admin':
+    V_Admin.main()
+elif seleccion == 'V Doctor':
+    V_Doctor.main()
+elif seleccion == 'V Paciente':
+    V_Paciente.main()
+elif seleccion == 'V Secretaria':
+    V_Secretaria.main()
+elif seleccion == 'V Veterinario':
+    V_Veterianario.main()
+elif seleccion == 'Citas':
+    Citas.main()
+elif seleccion == 'Historial Medico':
+    Historial_Medico.main()
+elif seleccion == 'Notas':
+    Notas.main()
+elif seleccion == 'Paciente':
+    Paciente.main()
+elif seleccion == 'Prediccion IA':
+    Prediccion_IA.main()
+elif seleccion == 'Tratamientos':
+    Tratamientos.main()
+elif seleccion == 'Usuarios':
+    Usuarios.main()
