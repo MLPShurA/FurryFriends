@@ -105,7 +105,7 @@ def login():
     if not st.session_state['logueado']:
         col1, col2, col3 = st.columns([1, 2.5, 1])
         with col2:
-            image_base64 = image_to_base64("Recursos/Kuromi.jpg")
+            image_base64 = image_to_base64("Recursos/logo.png")
 
             with st.form(key="login_form"):
                 st.image(f"data:image/png;base64,{image_base64}")

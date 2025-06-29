@@ -18,7 +18,67 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS para ocultar la barra automática y dejar solo tu menú ---
+# ---------- BLOQUE CSS GLOBAL PARA FORMULARIOS ----------
+st.markdown("""
+<style>
+/* Estilo general para todos los inputs y selects */
+input[type="text"], input[type="password"], input[type="email"], textarea, select, input[type="number"] {
+    background-color: #E0FCFC !important;
+    border: 2px solid #00C2C2 !important;
+    color: #222 !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: 1rem !important;
+    padding-left: 10px !important;
+}
+input[type="number"] {
+    /* Asegura que el fondo de number input sea igual */
+    background-color: #E0FCFC !important;
+    color: #222 !important;
+}
+/* Color y tamaño para los botones de aumentar/disminuir */
+input[type="number"]::-webkit-inner-spin-button, 
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    background: #00C2C2 !important;
+    border-radius: 4px !important;
+    width: 18px;
+    height: 28px;
+    margin: 1px;
+}
+input[type="number"]:hover::-webkit-inner-spin-button,
+input[type="number"]:hover::-webkit-outer-spin-button {
+    background: #34CACA !important;
+}
+input[type="number"]::-webkit-inner-spin-button:active,
+input[type="number"]::-webkit-outer-spin-button:active {
+    background: #009999 !important;
+}
+input::placeholder, textarea::placeholder {
+    color: #00A3A3 !important;
+    opacity: 1 !important;
+    font-weight: 500 !important;
+}
+/* Firefox (ocultar flechas si quieres un look limpio)
+input[type="number"]::-moz-number-spin-box,
+input[type="number"]::-moz-number-spin-up,
+input[type="number"]::-moz-number-spin-down {
+    background: #00C2C2 !important;
+    border-radius: 4px !important;
+} */
+label, .stSelectbox label, .stTextInput label, .stTextArea label {
+    color: #004D4D !important;
+    font-weight: bold !important;
+}
+/* Menú desplegable de selectbox */
+.stSelectbox [data-baseweb="select"]>div {
+    background-color: #E0FCFC !important;
+    color: #222 !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# --- CSS para ocultar la barra automática y dejar solo tu menú + colores de botones ---
 st.markdown("""
     <style>
     /* Oculta el selector de páginas streamlit-multipage */
@@ -32,7 +92,7 @@ st.markdown("""
         background-color: #34CACA !important;
         padding-top: 0px !important;
     }
-    /* -------------------- BOTONES TURQUESA GLOBALES ------------------- */
+    /* BOTONES TURQUESA GLOBALES */
     .stButton>button, .icon-button, .edit-btn, .delete-btn {
         background-color: #34CACA !important;
         color: #fff !important;
@@ -106,7 +166,7 @@ with st.sidebar:
         }
     )
 
-image_path = "Recursos/Kuromi.jpg"
+image_path = "Recursos/logo.png"
 image_b64 = image_to_base64(image_path)
 
 if seleccion == 'Inicio':
@@ -115,7 +175,7 @@ if seleccion == 'Inicio':
             <h1 style="color:#004D4D;">
                 ¡Bienvenido/a <span style='color:#00C2C2;'>{st.session_state['usuario'].capitalize()}</span>!
             </h1>
-            <img src="data:image/png;base64,{image_b64}" width="120" style="border-radius:12px;"/>
+            <img src="data:image/png;base64,{image_b64}" width="620" style="border-radius:16px;"/>
             <h2 style="color:#004D4D;">Medical <span style='color:#00C2C2;'>Pets</span></h2>
         </div>
     """, unsafe_allow_html=True)
